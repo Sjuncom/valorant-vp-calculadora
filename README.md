@@ -10,7 +10,7 @@ Herramienta web para calcular la combinación **más barata** de paquetes de Val
 
 ## Uso
 
-No necesita instalación ni servidor. Solo abre [`index.html`](./index.html) en cualquier navegador, o entra al link publicado con GitHub Pages.
+No necesita instalación ni servidor, solo entra al link: https://sjuncom.github.io/valorant-vp-calculadora/.
 
 Los paquetes (VP y precio) son editables directamente en la tabla, así que puedes ajustarlos si cambian de precio o si tu región tiene precios distintos.
 
