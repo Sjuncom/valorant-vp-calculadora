@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VP // Calculadora de abastecimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1013;
+    --bg-alt: #12161a;
+    --panel: #171c21;
+    --panel-2: #1d2329;
+    --line: #2a3138;
+    --red: #ff4655;
+    --red-dim: #7a1f28;
+    --ink: #ece8e1;
+    --ink-dim: #8b939b;
+    --ink-faint: #545c63;
+    --ok: #5ee3a8;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+  }
+
+  body{
+    background-image:
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-alt) 100%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 64px);
+    padding: 32px 20px 80px;
+  }
+
+  .wrap{
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width: 18px; height: 2px;
+    background: var(--red);
+    display:inline-block;
+  }
+
+  h1{
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 44px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    margin: 0 0 6px;
+    line-height: 1.05;
+  }
+  h1 span{ color: var(--red); }
+
+  .subtitle{
+    color: var(--ink-dim);
+    font-size: 13px;
+    max-width: 560px;
+    line-height: 1.6;
+    margin-bottom: 36px;
+  }
+
+  /* ---------- angular panel shell (signature element) ---------- */
+  .panel{
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+    padding: 24px;
+  }
+  .panel::before{
+    content:"";
+    position:absolute; top:0; left:0;
+    width: 14px; height: 2px;
+    background: var(--red);
+  }
+  .panel::after{
+    content:"";
+    position:absolute; bottom:0; right:0;
+    width: 14px; height: 2px;
+    background: var(--red);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
+
+  .field label{
+    display:block;
+    font-family: 'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+  }
+  .field input[type=number]{
+    width: 100%;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  .field input[type=number]:focus{ border-color: var(--red); }
+  .field .hint{ font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+
+  /* ---------- packages editor ---------- */
+  .section-title{
+    font-family:'Oswald', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 28px 0 12px;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+  }
+
+  .pkg-table{ width:100%; border-collapse: collapse; }
+  .pkg-table th{
+    text-align:left;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 0 8px 8px;
+    font-weight: 500;
+  }
+  .pkg-table td{ padding: 4px 8px 4px 0; }
+  .pkg-table tr + tr td{ padding-top: 6px; }
+
+  .pkg-table input{
+    width: 100%;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    padding: 8px 10px;
+    outline: none;
+  }
+  .pkg-table input:focus{ border-color: var(--red); }
+
+  .pkg-remove{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .pkg-remove:hover{ border-color: var(--red); color: var(--red); }
+
+  .add-row{
+    margin-top: 10px;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--ink-dim);
+    padding: 8px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    width: 100%;
+  }
+  .add-row:hover{ border-color: var(--ink-dim); color: var(--ink); }
+
+  /* ---------- CTA ---------- */
+  .cta{
+    margin-top: 28px;
+    width: 100%;
+    background: var(--red);
+    color: #150507;
+    border: none;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 15px;
+    cursor: pointer;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    transition: filter .15s ease, transform .05s ease;
+  }
+  .cta:hover{ filter: brightness(1.1); }
+  .cta:active{ transform: translateY(1px); }
+
+  /* ---------- results ---------- */
+  #result{ margin-top: 24px; display:none; }
+
+  .result-panel{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ok);
+    padding: 20px 22px;
+  }
+  .result-panel.warn{ border-left-color: var(--red); }
+
+  .result-headline{
+    font-family:'Oswald', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  .result-msg{ font-size: 14px; line-height: 1.6; color: var(--ink); }
+
+  .buy-line{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .buy-line:last-of-type{ border-bottom: none; }
+  .buy-qty{ color: var(--red); font-weight: 700; margin-right: 8px; }
+  .buy-vp{ color: var(--ink); }
+  .buy-sub{ color: var(--ink-dim); }
+
+  .totals{
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display:flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .totals .stat-label{ font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+  .totals .stat-val{ font-family:'Oswald', sans-serif; font-size: 22px; font-weight: 600; margin-top: 2px; }
+  .stat-val.price{ color: var(--red); }
+  .stat-val.spare{ color: var(--ok); }
+
+  footer{
+    text-align:center;
+    color: var(--ink-faint);
+    font-size: 11px;
+    margin-top: 40px;
+    letter-spacing: 0.04em;
+  }
+
+  /* quitar flechas de los inputs numéricos: solo se editan escribiendo */
+  input[type=number]{
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Store // Riot Points</div>
+  <h1>Calculadora de <span>Valorant Points</span></h1>
+  <p class="subtitle">Dinos cuántos VP quieres tener y cuántos ya tienes. Calculamos la combinación de paquetes más barata para cubrir la diferencia — o la que más VP te da si dos combinaciones cuestan lo mismo.</p>
+
+  <div class="panel">
+    <div class="grid">
+      <div class="field">
+        <label for="deseados">VP que quiero tener</label>
+        <input type="number" id="deseados" min="0" placeholder="9500" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label for="actuales">VP que ya tengo</label>
+        <input type="number" id="actuales" min="0" placeholder="100" inputmode="numeric">
+        <div class="hint">Si no tienes, deja en 0.</div>
+      </div>
+    </div>
+
+    <div id="result"></div>
+
+    <button class="cta" id="calcBtn" type="button">Calcular combinación más barata</button>
+
+    <div class="section-title">Paquetes disponibles</div>
+    <table class="pkg-table" id="pkgTable">
+      <thead>
+        <tr>
+          <th style="width:45%">Valorant Points</th>
+          <th style="width:45%">Precio</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="pkgBody"></tbody>
+    </table>
+    <button class="add-row" id="addRow" type="button">+ agregar paquete</button>
+  </div>
+
+  <footer>Los precios se editan libremente en la tabla — ajústalos a los de tu región antes de calcular.</footer>
+</div>
+
+<script>
+const defaultPackages = [
+  { vp: 475,   price: 85   },
+  { vp: 1000,  price: 170  },
+  { vp: 2050,  price: 340  },
+  { vp: 3650,  price: 600  },
+  { vp: 5350,  price: 875  },
+  { vp: 11000, price: 1700 },
+];
+
+const pkgBody = document.getElementById('pkgBody');
+
+function addRow(vp = '', price = ''){
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="number" min="1" class="pkg-vp" value="${vp}" placeholder="VP"></td>
+    <td><input type="number" min="0" step="0.01" class="pkg-price" value="${price}" placeholder="$"></td>
+    <td><button class="pkg-remove" type="button" title="Quitar">×</button></td>
+  `;
+  tr.querySelector('.pkg-remove').addEventListener('click', () => tr.remove());
+  pkgBody.appendChild(tr);
+}
+
+defaultPackages.forEach(p => addRow(p.vp, p.price));
+document.getElementById('addRow').addEventListener('click', () => addRow());
+
+function leerPaquetes(){
+  const filas = [...pkgBody.querySelectorAll('tr')];
+  const paquetes = [];
+  for(const fila of filas){
+    const vp = parseFloat(fila.querySelector('.pkg-vp').value);
+    const price = parseFloat(fila.querySelector('.pkg-price').value);
+    if(Number.isFinite(vp) && vp > 0 && Number.isFinite(price) && price >= 0){
+      paquetes.push({ vp: Math.round(vp), price });
+    }
+  }
+  return paquetes;
+}
+
+// Misma lógica que la versión en Python: DP tipo "coin change" no acotado,
+// minimizando costo y, en caso de empate, maximizando los VP reales.
+function calcularCombinacion(vpNecesarios, paquetes){
+  if (vpNecesarios <= 0 || paquetes.length === 0) return { costo: 0, compras: [] };
+
+  const maxPaquete = Math.max(...paquetes.map(p => p.vp));
+  const limite = vpNecesarios + maxPaquete;
+
+  const costo = new Array(limite + 1).fill(Infinity);
+  const vpReal = new Array(limite + 1).fill(0);
+  const origen = new Array(limite + 1).fill(null);
+  costo[0] = 0;
+
+  for(let i = 1; i <= limite; i++){
+    for(const p of paquetes){
+      const j = Math.max(0, i - p.vp);
+      const nuevoCosto = costo[j] + p.price;
+      const nuevoVp = vpReal[j] + p.vp;
+      if(nuevoCosto < costo[i] || (nuevoCosto === costo[i] && nuevoVp > vpReal[i])){
+        costo[i] = nuevoCosto;
+        vpReal[i] = nuevoVp;
+        origen[i] = { vp: p.vp, j };
+      }
+    }
+  }
+
+  let mejorI = vpNecesarios;
+  for(let i = vpNecesarios; i <= limite; i++){
+    if(costo[i] < costo[mejorI] || (costo[i] === costo[mejorI] && vpReal[i] > vpReal[mejorI])){
+      mejorI = i;
+    }
+  }
+
+  const comprasMap = new Map();
+  let actual = mejorI;
+  while(actual > 0 && origen[actual]){
+    const { vp, j } = origen[actual];
+    comprasMap.set(vp, (comprasMap.get(vp) || 0) + 1);
+    actual = j;
+  }
+
+  const compras = [...comprasMap.entries()]
+    .map(([vp, cantidad]) => ({ vp, cantidad }))
+    .sort((a, b) => b.vp - a.vp);
+
+  return { costo: costo[mejorI], compras };
+}
+
+function fmt(n){
+  return n.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+document.getElementById('calcBtn').addEventListener('click', () => {
+  const deseados = parseFloat(document.getElementById('deseados').value) || 0;
+  const actuales = parseFloat(document.getElementById('actuales').value) || 0;
+  const paquetes = leerPaquetes();
+  const resultEl = document.getElementById('result');
+
+  if(paquetes.length === 0){
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `<div class="result-panel warn">
+        <div class="result-headline">Falta información</div>
+        <div class="result-msg">Agrega al menos un paquete válido (VP y precio) para poder calcular.</div>
+      </div>`;
+    return;
+  }
+
+  const faltantes = deseados - actuales;
+
+  if(faltantes <= 0){
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `<div class="result-panel">
+        <div class="result-headline">Resultado</div>
+        <div class="result-msg">Ya tienes suficientes VP — no necesitas comprar nada.</div>
+      </div>`;
+    return;
+  }
+
+  const { costo, compras } = calcularCombinacion(faltantes, paquetes);
+  const vpTotalComprado = compras.reduce((sum, c) => sum + c.vp * c.cantidad, 0);
+  const sobrante = vpTotalComprado - faltantes;
+
+  const lineas = compras.map(c => `
+    <div class="buy-line">
+      <div><span class="buy-qty">x${c.cantidad}</span><span class="buy-vp">paquete de ${fmt(c.vp)} VP</span></div>
+      <div class="buy-sub">$${fmt(paquetes.find(p => p.vp === c.vp).price)} c/u &nbsp;=&nbsp; $${fmt(c.vp && paquetes.find(p => p.vp === c.vp).price * c.cantidad)}</div>
+    </div>
+  `).join('');
+
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div class="result-panel">
+      <div class="result-headline">Combinación más barata</div>
+      <div class="result-msg">Te faltan ${fmt(faltantes)} VP. Esta es la forma más económica de conseguirlos:</div>
+      <div style="margin-top:14px">${lineas}</div>
+      <div class="totals">
+        <div>
+          <div class="stat-label">VP obtenidos</div>
+          <div class="stat-val">${fmt(vpTotalComprado)}</div>
+        </div>
+        <div>
+          <div class="stat-label">Sobrante</div>
+          <div class="stat-val spare">${fmt(sobrante)}</div>
+        </div>
+        <div>
+          <div class="stat-label">Costo total</div>
+          <div class="stat-val price">$${fmt(costo)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+});
+</script>
+</body>
+</html>
