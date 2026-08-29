@@ -10,7 +10,7 @@ Herramienta web para calcular la combinación **más barata** de paquetes de Val
 
 ## Uso
 
-No necesita instalación ni servidor. Solo abre [`calculadora_vp.html`](./calculadora_vp.html) en cualquier navegador, o entra al link publicado con GitHub Pages.
+No necesita instalación ni servidor. Solo abre [`index.html`](./index.html) en cualquier navegador, o entra al link publicado con GitHub Pages.
 
 Los paquetes (VP y precio) son editables directamente en la tabla, así que puedes ajustarlos si cambian de precio o si tu región tiene precios distintos.
 
@@ -21,4 +21,3 @@ Todo corre en el navegador con HTML, CSS y JavaScript — no se conecta a ningú
 ## Aviso
 
 Este proyecto no tiene ninguna afiliación con Riot Games. Los precios de los paquetes se editan manualmente porque no existe una API pública oficial para obtener los precios de la tienda de VALORANT.
-
