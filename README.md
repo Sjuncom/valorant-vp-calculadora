@@ -21,3 +21,4 @@ Todo corre en el navegador con HTML, CSS y JavaScript — no se conecta a ningú
 ## Aviso
 
 Este proyecto no tiene ninguna afiliación con Riot Games. Los precios de los paquetes se editan manualmente porque no existe una API pública oficial para obtener los precios de la tienda de VALORANT.
+
